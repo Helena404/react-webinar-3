@@ -37,12 +37,18 @@ body {
 .Item {
   display: flex;
   justify-content: flex-start;
+  align-items: center;
   transition: background-color 1s;
 }
 
 .Item_selected {
   background: #75aaf1;
   color: #fff;
+}
+.Item-selection-count {
+  min-width: 150px;
+  font-size: 12px;
+  color: #202038;
 }
 
 .Item-code {
