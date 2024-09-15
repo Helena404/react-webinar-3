@@ -2,13 +2,14 @@
  * Хранилище состояния приложения
  */
 class Store {
-	constructor(initState = {}) {
-	  this.state = {
-		...initState,
-		maxCode: initState.list.reduce((max, item) => Math.max(max, item.code), 0), // Определяем максимальный код на основе текущего списка
-	  };
-	  this.listeners = [];
-	}
+  constructor(initState = {}) {
+    this.state = {
+      ...initState,
+      maxCode: initState.list.reduce((max, item) => Math.max(max, item.code), 0),
+      usedCodes: new Set(initState.list.map(item => item.code)), // Храним использованные коды
+    };
+    this.listeners = [];
+  }
 
   /**
    * Подписка слушателя на изменения состояния
@@ -42,15 +43,28 @@ class Store {
   }
 
   /**
+   * Генерация уникального кода
+   * @returns {number}
+   */
+  generateUniqueCode() {
+    let newCode = this.state.maxCode + 1;
+    while (this.state.usedCodes.has(newCode)) {
+      newCode += 1;
+    }
+    this.state.usedCodes.add(newCode); // Добавляем новый код в сет использованных
+    this.state.maxCode = newCode; // Обновляем максимальный код
+    return newCode;
+  }
+
+  /**
    * Добавление новой записи
    */
   addItem() {
-    const newCode = this.state.maxCode + 1;
+    const newCode = this.generateUniqueCode();
 
     this.setState({
       ...this.state,
-      list: [...this.state.list, { code: newCode, title: 'Новая запись' }],
-      maxCode: newCode,
+      list: [...this.state.list, { code: newCode, title: 'Новая запись', selectionCount: 0 }],
     });
   }
 
@@ -59,6 +73,7 @@ class Store {
    * @param code
    */
   deleteItem(code) {
+    this.state.usedCodes.delete(code); // Удаляем код из сета использованных
     this.setState({
       ...this.state,
       list: this.state.list.filter(item => item.code !== code),
@@ -70,25 +85,33 @@ class Store {
    * @param code
    */
   selectItem(code) {
-	this.setState({
-	  ...this.state,
-	  list: this.state.list.map(item => {
-		// Если код совпадает, инвертируем выделение и увеличиваем счетчик
-		if (item.code === code) {
-		  return {
-			...item,
-			selected: !item.selected,
-			// Увеличиваем счетчик только если выделяем элемент
-			selectionCount: item.selected ? item.selectionCount : (item.selectionCount || 0) + 1,
-		  };
-		}
-		// Снимаем выделение с остальных записей
-		return {
-		  ...item,
-		  selected: false,
-		};
-	  }),
-	});
+    this.setState({
+      ...this.state,
+      list: this.state.list.map(item => {
+        if (item.code === code) {
+          return {
+            ...item,
+            selected: !item.selected,
+            selectionCount: item.selected ? item.selectionCount : (item.selectionCount || 0) + 1,
+          };
+        }
+        return {
+          ...item,
+          selected: false,
+        };
+      }),
+    });
+  }
+
+  /**
+   * Форматирование фразы с правильной формой слова "раз"
+   * @param count {number}
+   * @returns {string}
+   */
+  formatSelectionCount(count) {
+    if (count === 1) return '1 раз';
+    if (count >= 2 && count <= 4) return `${count} раза`;
+    return `${count} раз`;
   }
 }
 

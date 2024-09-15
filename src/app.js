@@ -1,5 +1,4 @@
 import React from 'react';
-import { createElement } from './utils.js';
 import './styles.css';
 
 /**
@@ -20,16 +19,18 @@ function App({ store }) {
       </div>
       <div className="App-center">
         <div className="List">
-          {list.map(item => (
+          {list.map((item, index) => (
             <div key={item.code} className="List-item">
               <div
                 className={'Item' + (item.selected ? ' Item_selected' : '')}
                 onClick={() => store.selectItem(item.code)}
               >
-                <div className="Item-code">{item.code}</div>
+                <p className="Item-code">Запись {index + 1}</p>
                 <div className="Item-title">{item.title}</div>
-				{item.selectionCount > 0 && (
-                  <div className="Item-selection-count">Выделяли {item.selectionCount} раз(а)</div>
+                {item.selectionCount > 0 && (
+                  <div className="Item-selection-count">
+                    Выделяли {store.formatSelectionCount(item.selectionCount)}
+                  </div>
                 )}
                 <div className="Item-actions">
                   <button onClick={() => store.deleteItem(item.code)}>Удалить</button>
